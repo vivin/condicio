@@ -1,4 +1,4 @@
 .idea
-dist/reports
+dist/report
 dist/test-reports
 node_modules
