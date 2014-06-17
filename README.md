@@ -1,6 +1,6 @@
 <p align="right">
-   <img src="https://travis-ci.org/vivin/condicio.png?branch=develop" alt="Condicio Build Status" />&nbsp;
-   <a href='https://coveralls.io/r/vivin/condicio?branch=develop'><img src='https://coveralls.io/repos/vivin/condicio/badge.png?branch=develop' alt='Condicio Coverage Status' /></a>
+   <img src="https://travis-ci.org/vivin/condicio.png?branch=master" alt="Condicio Build Status" />&nbsp;
+   <a href='https://coveralls.io/r/vivin/condicio?branch=master'><img src='https://coveralls.io/repos/vivin/condicio/badge.png?branch=master' alt='Condicio Coverage Status' /></a>
 </p>
 
 Condicio
