@@ -1,14 +1,16 @@
 /**
  * @preserve
  * condicio.js - A preconditions library for JavaScript similar to Google's Preconditions from Guava
- * Version 1.0.0
+ * Version 1.0.1
  * Written by Vivin Paliath (http://vivin.net)
  * License: BSD License
- * Copyright (C) 2014
+ * Copyright (C) 2015
  */
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define('condicio',factory)
+        define('condicio',[], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory();
     } else {
         root.condicio = factory();
     }
