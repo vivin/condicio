@@ -9,7 +9,7 @@ Condicio
 What
 ----
 
-A simple library similar to [Google's Preconditions](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/base/Preconditions.html) in Guava.
+A simple library similar to [Google's Preconditions](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/base/Preconditions.html) in Guava. The current version is **2.0.0**.
 
 Why
 ---
@@ -46,22 +46,29 @@ Ensuring that arguments are of a specific type:
         ...
     }
 
+There are also functions that return a boolean instead of throwing an exception:
+
+    function render(name, callbackOrString) {
+        if(condicio.isFunction(callbackOrString)) {
+            ...
+        } else if(condicio.isString(callbackOrString)) {
+            ...
+        } else {
+            throw new TypeError("Second argument must be a function or a string.");
+        }
+    }
+
 API
 ---
 
-All functions take an optional `message` and `arguments` parameter. `message` can be provided for custom error messages. `arguments` is an array of values than can be used for interpolation.
+All check functions take an optional `message` and `arguments` parameter. `message` can be provided for custom error messages. `arguments` is an array of values than can be used for interpolation.
 For example, if `message` is `"The argument must be {0} and {1}"`, and `arguments` is the array `["one", "two"]`, then the interpolated error-message will be `"The argument must be one and two"`.
 This is useful for custom, dynamic, error-messages.
 
-The API exposes the following exceptions:
+In addition to throwing standard error-types (i.e., `TypeError`, `ReferenceError`, and `RangeError`), the API exposes the following errors:
 
- - `condicio.IllegalArgumentException`: Thrown when an invalid or illegal argument is supplied.
- - `condicio.IllegalStateException`: Thrown when the state of the calling instance or context is invalid.
- - `condicio.NullReferenceException`: Thrown when a reference is `null`.
- - `condicio.UndefinedReferenceException`: Thrown when a reference is `undefined`.
- - `condicio.IndexOutOfBoundsException`: Thrown when an index is out of bounds.
- - `condicio.PropertyNotFoundException`: Thrown when a property is not found on an object.
- - `condicio.InvalidTypeException`: Thrown if an argument is of an invalid type.
+ - `condicio.IllegalArgumentError`: Thrown when an invalid or illegal argument is supplied.
+ - `condicio.IllegalStateError`: Thrown when the state of the calling instance or context is invalid.
 
 These are full-fledged [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) objects.
 
@@ -69,88 +76,178 @@ The API supports the following functions to check your arguments or the state of
 
 **checkArgument**(expression, *[message, [arguments]]*)
 
-Ensures that the `expression` involving one or more arguments to the function is `true`. If `expression` is `false`, a `condicio.IllegalArgumentException` will be thrown.
+Ensures that the `expression` involving one or more arguments to the function is `true`. If `expression` is `false`, a `condicio.IllegalArgumentError` will be thrown.
 
 ---
 
 **checkState**(expression, *[message, [arguments]]*)
 
-Ensures that the `expression` involving the state of the **calling** instance or context, but **not** involving any parameters to the calling function, is `true`. If `expression` is `false`, a `condicio.IllegalStateException` will be thrown.
+Ensures that the `expression` involving the state of the **calling** instance or context, but **not** involving any parameters to the calling function, is `true`. If `expression` is `false`, a `condicio.IllegalStateError` will be thrown.
 
 ---
 
 **checkNotNull**(reference, *[message, [arguments]]*)
 
-Ensures that `reference` is not `null`. Throws a `condicio.NullReferenceException` if `reference` is `null`.
+Ensures that `reference` is not `null`. Throws a `TypeError` if `reference` is `null`.
 
 ---
 
 **checkNotUndefined**(reference, *[message, [arguments]]*)
 
-Ensures that `reference` is not `undefined`. Throws a `condicio.UndefinedReferenceException` if `reference` is `undefined`.
+Ensures that `reference` is not `undefined`. Throws a `ReferenceError` if `reference` is `undefined`.
 
 ---
 
 **checkElementIndex**(index, size, *[message, [arguments]]*)
 
-Ensures that `index` specifies a valid *element* in an array or string of size `size`. Valid indexes range from `0` to `size - 1`. Throws `condicio.IndexOutOfBoundsException` if `index` is negative or not less than `size`. Throws `condicio.IllegalArgumentException` if `size` is negative.
+Ensures that `index` specifies a valid *element* in an array or string of size `size`. Valid indexes range from `0` to `size - 1`. Throws `RangeError` if `index` is negative or not less than `size`. Throws `condicio.IllegalArgumentError` if `size` is negative.
 
 ---
 
 **checkPositionIndex**(index, size, *[message, [arguments]]*)
 
-Ensures that `index` specifies a valid *position* in an array or string of size `size`. Valid positions range from `0` to `size`. This precondition is typically used to test for a valid position to add a *new* element.Throws `condicio. IndexOutOfBoundsException` if `index` is negative or greater than `size`. Throws `IllegalArgumentException` is `size` is negative.
+Ensures that `index` specifies a valid *position* in an array or string of size `size`. Valid positions range from `0` to `size`. This precondition is typically used to test for a valid position to add a *new* element.Throws `condicio. RangeError` if `index` is negative or greater than `size`. Throws `IllegalArgumentError` is `size` is negative.
 
 ---
 
 **checkPositionIndexes**(start, end, size, *[message, [arguments]]*)
 
-Ensures that `start` and `end` specify valid *positions* in an array or string of size `size`, and are in order.  Throws `condicio.IndexOutOfBoundsException` if either index is negative or is greater than `size`, or if `end` is less than `start`. Throws `condicio.IllegalArgumentException` if `size` is negative.
+Ensures that `start` and `end` specify valid *positions* in an array or string of size `size`, and are in order.  Throws `RangeError` if either index is negative or is greater than `size`, or if `end` is less than `start`. Throws `condicio.IllegalArgumentError` if `size` is negative.
 
 ---
 
 **checkObjectDirectProperty**(object, property, *[message, [arguments]]*)
 
-Ensures that the property `property` exists and is a direct property of `object`. Throws `condicio.PropertyNotFoundException` if the property is not a direct property of `object`.
+Ensures that the property `property` exists and is a direct property of `object`. Throws `ReferenceError` if the property is not a direct property of `object`.
 
 ---
 
 **checkObjectProperty**(object, property, *[message, [arguments]]*)
 
-Ensures that the property `property` exists and is a property (direct or inherited via prototype chain) of `object`. Throws `condicio.PropertyNotFoundException` if the property is not a property (direct or inherited via prototype chain) of `object`.
+Ensures that the property `property` exists and is a property (direct or inherited via prototype chain) of `object`. Throws `ReferenceError` if the property is not a property (direct or inherited via prototype chain) of `object`.
 
 ---
 
 **checkIsBoolean**(object, *[message, [arguments]]*)
 
-Ensures that `object` is a [`boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean). Throws `condicio.InvalidTypeException` if `object` is not a `boolean`.
+Ensures that `object` is a [`boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean). Throws `TypeError` if `object` is not a `boolean`.
 
 ---
 
 **checkIsNumber**(object, *[message, [arguments]]*)
 
-Ensures that `object` is a [`number`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). Throws `condicio.InvalidTypeException` if `object` is not a `number`.
+Ensures that `object` is a [`number`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). Throws `TypeError` if `object` is not a `number`.
 
 ---
 
 **checkIsString**(object, *[message, [arguments]]*)
 
-Ensures that `object` is a [`string`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String). Throws `condicio.InvalidTypeException` if `object` is not a `string`.
+Ensures that `object` is a [`string`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String). Throws `TypeError` if `object` is not a `string`.
 
 ---
 
 **checkIsArray**(object, *[message, [arguments]]*)
 
-Ensures that `object` is an [`array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array). Throws `condicio.InvalidTypeException` if `object` is not a `array`.
+Ensures that `object` is an [`array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array). Throws `TypeError` if `object` is not a `array`.
 
 ---
 
 **checkIsObject**(object, *[message, [arguments]]*)
 
-Ensures that `object` is an [`object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object). Throws `condicio.InvalidTypeException` if `object` is not a `object`.
+Ensures that `object` is an [`object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object). Throws `TypeError` if `object` is not a `object`.
 
 ---
 
 **checkIsFunction**(object, *[message, [arguments]]*)
 
-Ensures that `object` is a [`function`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Functions/Function). Throws `condicio.InvalidTypeException` if `object` is not a `function`.
+Ensures that `object` is a [`function`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Functions/Function). Throws `TypeError` if `object` is not a `function`.
+
+---
+
+**checkIsType**(object, type, *[message, [arguments]]*)
+
+Ensures that `object` is an instance of `type`. Throws `TypeError` if `object` is not an instance of `type`.
+
+---
+
+**isNull**(reference)
+
+Returns true if `reference` is `null`.
+
+---
+
+**isUndefined**(reference)
+
+Returns true if `reference` is `undefined`.
+
+---
+
+**isElementIndexInvalid**(index, size)
+
+Returns true if `index` does not specify a valid *element* in an array or string of size `size`. Valid indexes range from `0` to `size - 1`.
+
+---
+
+**isPositionIndexInvalid**(index, size)
+
+Returns true if `index` does not specify a valid *position* in an array or string of size `size`. Valid positions range from `0` to `size`. This precondition is typically used to test for a valid position to add a *new* element.
+
+---
+
+**arePositionIndexesInvalid**(start, end, size)
+
+Returns true if `start` and `end` do not specify valid *positions* in an array or string of size `size`, and are in order.
+
+---
+
+**isObjectDirectProperty**(object, property)
+
+Returns true if the property `property` exists and is a direct property of `object`.
+
+---
+
+**isObjectProperty**(object, property)
+
+Returns true if the property `property` exists and is a property (direct or inherited via prototype chain) of `object`.
+
+---
+
+**isBoolean**(object)
+
+Returns true if `object` is a [`boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean).
+
+---
+
+**isNumber**(object)
+
+Returns true if `object` is a [`number`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number).
+
+---
+
+**isString**(object)
+
+Returns true if `object` is a [`string`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String).
+
+---
+
+**isArray**(object)
+
+Returns true if `object` is an [`array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array).
+
+---
+
+**isObject**(object)
+
+Returns true if `object` is an [`object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object).
+
+---
+
+**isFunction**(object)
+
+Returns true if `object` is a [`function`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Functions/Function).
+
+---
+
+**isType**(object, type)
+
+Returns true if `object` is an instance of `type`.

@@ -1,6 +1,6 @@
 {
   "name": "condicio",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "A preconditions library for JavaScript similar to Google's Preconditions from Guava.",
   "main": "dist/condicio.min.js",
   "scripts": {
