@@ -1,7 +1,7 @@
 /**
  * @preserve
  * condicio.js - A preconditions library for JavaScript similar to Google's Preconditions from Guava
- * Version 1.0.1
+ * Version 2.0.0
  * Written by Vivin Paliath (http://vivin.net)
  * License: BSD License
  * Copyright (C) 2015
@@ -16,50 +16,21 @@
     }
 }(this, function () {
 
-    var IllegalArgumentException = function (message) {
-        this.name = "IllegalArgumentException";
+    var IllegalArgumentError = function (message) {
+        this.name = "IllegalArgumentError";
         this.message = message;
     };
 
-    var IllegalStateException = function (message) {
-        this.name = "IllegalStateException";
+    var IllegalStateError = function (message) {
+        this.name = "IllegalStateError";
         this.message = message;
     };
 
-    var NullReferenceException = function (message) {
-        this.name = "NullReferenceException";
-        this.message = message;
-    };
+    extendError(IllegalArgumentError);
+    extendError(IllegalStateError);
+    extendError(TypeError);
 
-    var UndefinedReferenceException = function (message) {
-        this.name = "UndefinedReferenceException";
-        this.message = message;
-    };
-
-    var IndexOutOfBoundsException = function (message) {
-        this.name = "IndexOutOfBoundsException";
-        this.message = message;
-    };
-
-    var PropertyNotFoundException = function (message) {
-        this.name = "PropertyNotFoundException";
-        this.message = message;
-    };
-
-    var InvalidTypeException = function (message) {
-        this.name = "InvalidTypeException";
-        this.message = message;
-    };
-
-    extendException(IllegalArgumentException);
-    extendException(IllegalStateException);
-    extendException(NullReferenceException);
-    extendException(UndefinedReferenceException);
-    extendException(IndexOutOfBoundsException);
-    extendException(PropertyNotFoundException);
-    extendException(InvalidTypeException);
-
-    function extendException(error) {
+    function extendError(error) {
         error.prototype = new Error();
         error.prototype.constructor = error;
     }
@@ -74,7 +45,7 @@
         return message;
     }
 
-    function generateException(defaultMessage, message, arguments, exception) {
+    function generateError(defaultMessage, message, arguments, exception) {
         if(typeof message === "undefined" || message === null) {
             throw new exception(defaultMessage);
         } else if(typeof arguments === "undefined" || arguments === null) {
@@ -88,7 +59,7 @@
 
     function checkArgument(expression, message, arguments) {
         if(!expression) {
-            generateException("Argument does not satisfy expression", message, arguments, IllegalArgumentException);
+            generateError("Argument does not satisfy expression", message, arguments, IllegalArgumentError);
         }
     }
 
@@ -97,21 +68,37 @@
         checkIsNumber(size, "Size must be a number");
         checkArgument(size >= 0, "Size must be positive; received {0} instead", [size]);
 
-        if(index < 0 || index >= size) {
-            generateException("Index " + index + " is not a valid index in array of size " + size, message, arguments, IndexOutOfBoundsException);
+        if(isElementIndexInvalid(index, size)) {
+            generateError("Index " + index + " is not a valid index in array of size " + size, message, arguments, RangeError);
         }
+    }
+
+    function isElementIndexInvalid(index, size) {
+        checkIsNumber(index, "Index must be a number");
+        checkIsNumber(size, "Size must be a number");
+        checkArgument(size >= 0, "Size must be positive; received {0} instead", [size]);
+
+        return (index < 0 || index >= size);
     }
 
     function checkNotNull(reference, message, arguments) {
-        if(reference === null) {
-            generateException("Argument cannot be null", message, arguments, NullReferenceException);
+        if(isNull(reference)) {
+            generateError("Argument cannot be null", message, arguments, TypeError);
         }
     }
 
-    function checkNotUndefined(object, message, arguments) {
-        if(typeof object === "undefined") {
-            generateException("Argument cannot be undefined", message, arguments, UndefinedReferenceException);
+    function isNull(reference) {
+        return (reference === null);
+    }
+
+    function checkNotUndefined(reference, message, arguments) {
+        if(isUndefined(reference)) {
+            generateError("Argument cannot be undefined", message, arguments, ReferenceError);
         }
+    }
+
+    function isUndefined(reference) {
+        return (typeof reference === "undefined");
     }
 
     function checkPositionIndex(index, size, message, arguments) {
@@ -119,9 +106,17 @@
         checkIsNumber(size, "Size must be a number");
         checkArgument(size >= 0, "Size must be positive; received {0} instead", [size]);
 
-        if(index < 0 || index > size) {
-            generateException("Index " + index + " is not a valid position in array of size " + size, message, arguments, IndexOutOfBoundsException);
+        if(isPositionIndexInvalid(index, size)) {
+            generateError("Index " + index + " is not a valid position in array of size " + size, message, arguments, RangeError);
         }
+    }
+
+    function isPositionIndexInvalid(index, size) {
+        checkIsNumber(index, "Index must be a number");
+        checkIsNumber(size, "Size must be a number");
+        checkArgument(size >= 0, "Size must be positive; received {0} instead", [size]);
+
+        return (index < 0 || index > size);
     }
 
     function checkPositionIndexes(start, end, size, message, arguments) {
@@ -130,72 +125,144 @@
         checkIsNumber(size, "Size must be a number");
         checkArgument(size >= 0, "Size must be positive; received {0} instead", [size]);
 
-        if(start < 0 || end > size || start > end) {
-            generateException("Positions between indexes " + start + " and " + end + " are not valid positions in array of size " + size, message, arguments, IndexOutOfBoundsException);
+        if(arePositionIndexesInvalid(start, end, size)) {
+            generateError("Positions between indexes " + start + " and " + end + " are not valid positions in array of size " + size, message, arguments, RangeError);
         }
+    }
+
+    function arePositionIndexesInvalid(start, end, size) {
+        checkIsNumber(start, "Starting index must be a number");
+        checkIsNumber(end, "Ending index must be a number");
+        checkIsNumber(size, "Size must be a number");
+        checkArgument(size >= 0, "Size must be positive; received {0} instead", [size]);
+
+        return (start < 0 || end > size || start > end);
     }
 
     function checkObjectDirectProperty(object, property, message, arguments) {
         checkNotNull(object, "Object parameter cannot be null");
-        checkIsObject(object, "Object parameter must actually be an object");
+        checkNotUndefined(object, "Object parameter cannot be undefined");
         checkIsString(property, "Property parameter must be a string");
 
-        if(!object.hasOwnProperty(property)) {
-            generateException("Property '" + property + "' is not a valid, direct property", message, arguments, PropertyNotFoundException);
+        if(!isObjectDirectProperty(object, property)) {
+            generateError("Property '" + property + "' is not a valid, direct property", message, arguments, ReferenceError);
         }
+    }
+
+    function isObjectDirectProperty(object, property) {
+        checkNotNull(object, "Object parameter cannot be null");
+        checkNotUndefined(object, "Object parameter cannot be undefined");
+        checkIsString(property, "Property parameter must be a string");
+
+        return object.hasOwnProperty(property);
     }
 
     function checkObjectProperty(object, property, message, arguments) {
         checkNotNull(object, "Object parameter cannot be null");
-        checkIsObject(object, "Object parameter must actually be an object");
+        checkNotUndefined(object, "Object parameter cannot be undefined");
         checkIsString(property, "Property parameter must be a string");
 
-        if(!(property in object)) {
-            generateException("Property '" + property + "' is not a valid property", message, arguments, PropertyNotFoundException);
+        if(!isObjectProperty(object, property)) {
+            generateError("Property '" + property + "' is not a valid property", message, arguments, ReferenceError);
         }
+    }
+
+    function isObjectProperty(object, property) {
+        checkNotNull(object, "Object parameter cannot be null");
+        checkNotUndefined(object, "Object parameter cannot be undefined");
+        checkIsString(property, "Property parameter must be a string");
+
+        return (property in object);
     }
 
     function checkState(expression, message, arguments) {
         if(!expression) {
-            generateException("State does not satisfy expression", message, arguments, IllegalStateException);
+            generateError("State does not satisfy expression", message, arguments, IllegalStateError);
         }
     }
 
     function checkIsBoolean(object, message, arguments) {
-        if(typeof object !== "boolean") {
-            generateException("Argument is not a boolean", message, arguments, InvalidTypeException);
+        if(!isBoolean(object)) {
+            generateError("Argument is not a boolean", message, arguments, TypeError);
         }
+    }
+
+    function isBoolean(object, message) {
+        return (typeof object === "boolean");
     }
 
     function checkIsNumber(object, message, arguments) {
-        if(typeof object !== "number") {
-            generateException("Argument is not a number", message, arguments, InvalidTypeException);
+        if(!isNumber(object)) {
+            generateError("Argument is not a number", message, arguments, TypeError);
         }
+    }
+
+    function isNumber(object) {
+        return (typeof object === "number");
     }
 
     function checkIsString(object, message, arguments) {
-        if(typeof object !== "string") {
-            generateException("Argument is not a string", message, arguments, InvalidTypeException);
+        if(!isString(object)) {
+            generateError("Argument is not a string", message, arguments, TypeError);
         }
+    }
+
+    function isString(object) {
+        return (typeof object === "string");
     }
 
     function checkIsArray(object, message, arguments) {
-        var isArray = typeof Array.isArray === "undefined" ? (toString.call(object) === "[object Array]") : Array.isArray(object);
-        if(!isArray) {
-            generateException("Argument is not an array", message, arguments, InvalidTypeException);
+        if(!isArray(object)) {
+            generateError("Argument is not an array", message, arguments, TypeError);
         }
+    }
+
+    function isArray(object) {
+        return (typeof Array.isArray === "undefined") ? (toString.call(object) === "[object Array]") : Array.isArray(object);
     }
 
     function checkIsObject(object, message, arguments) {
-        if(toString.call(object) !== "[object Object]") {
-            generateException("Argument is not an object", message, arguments, InvalidTypeException);
+        if(!isObject(object)) {
+            generateError("Argument is not an object", message, arguments, TypeError);
         }
     }
 
+    function isObject(object) {
+        return (Object.getPrototypeOf(new Object(object)) === Object.prototype);
+    }
+
     function checkIsFunction(object, message, arguments) {
-        if(typeof object !== "function") {
-            generateException("Argument is not a function", message, arguments, InvalidTypeException);
+        if(!isFunction(object)) {
+            generateError("Argument is not a function", message, arguments, TypeError);
         }
+    }
+
+    function isFunction(object) {
+        return (typeof object === "function");
+    }
+
+    function checkIsType(object, type, message, arguments) {
+        checkNotNull(object, "Object parameter cannot be null");
+        checkNotUndefined(object, "Object parameter cannot be undefined");
+        checkNotNull(type, "Type parameter cannot be null");
+        checkNotUndefined(type, "Type parameter cannot be undefined");
+        checkIsFunction(type, "Type parameter must be a function");
+
+        var expectedType = type.toString().replace(/\s/g, "").replace(/^function/, "").replace(/\(.*/, "");
+
+        if(!isType(object, type)) {
+            generateError("Argument is not of type " + expectedType, message, arguments, TypeError); 
+        }
+    }
+
+    function isType(object, type) {
+        checkNotNull(object, "Object parameter cannot be null");
+        checkNotUndefined(object, "Object parameter cannot be undefined");
+        checkNotNull(type, "Type parameter cannot be null");
+        checkNotUndefined(type, "Type parameter cannot be undefined");
+        checkIsFunction(type, "Type parameter must be a function");
+
+        return (object instanceof type);
     }
 
     return {
@@ -214,13 +281,23 @@
         checkIsArray: checkIsArray,
         checkIsObject: checkIsObject,
         checkIsFunction: checkIsFunction,
-        IllegalArgumentException: IllegalArgumentException,
-        IllegalStateException: IllegalStateException,
-        NullReferenceException: NullReferenceException,
-        UndefinedReferenceException: UndefinedReferenceException,
-        IndexOutOfBoundsException: IndexOutOfBoundsException,
-        PropertyNotFoundException: PropertyNotFoundException,
-        InvalidTypeException: InvalidTypeException
+        checkIsType: checkIsType,
+        isElementIndexInvalid: isElementIndexInvalid,
+        isNull: isNull,
+        isUndefined: isUndefined,
+        isPositionIndexInvalid: isPositionIndexInvalid,
+        arePositionIndexesInvalid: arePositionIndexesInvalid,
+        isObjectDirectProperty: isObjectDirectProperty,
+        isObjectProperty: isObjectProperty,
+        isBoolean: isBoolean,
+        isNumber: isNumber,
+        isString: isString,
+        isArray: isArray,
+        isObject: isObject,
+        isFunction: isFunction,
+        isType: isType,
+        IllegalArgumentError: IllegalArgumentError,
+        IllegalStateError: IllegalStateError
     };
 }));
 
